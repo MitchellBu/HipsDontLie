@@ -11,6 +11,7 @@ class DataLoader:
         self.annotation_paths = sorted(glob.glob(annotations_path + '/*/*'), key=os.path.basename)
         self.data_size = len(self.video_paths)
         self.batch_size = batch_size
+        self.shuffle = shuffle
         if shuffle:
             self.load_order = np.random.permutation(self.data_size)
         else:
@@ -24,6 +25,11 @@ class DataLoader:
     def __next__(self):
         self.internal_idx += self.batch_size
         if self.internal_idx > self.data_size:
+            if self.shuffle:
+                self.load_order = np.random.permutation(self.data_size)
+            else:
+                self.load_order = np.arange(self.data_size)
+            self.internal_idx = 0
             raise StopIteration
         batch_samples = []
         batch_targets = []
@@ -34,7 +40,7 @@ class DataLoader:
             try:
                 sample = torch.Tensor(sample)
             except:
-                print(video_path)
+                continue
             sample = torch.unsqueeze(sample, dim=1)
             batch_samples.append(sample)
             annotation_path = self.annotation_paths[file_idx]
