@@ -1,45 +1,8 @@
 import numpy as np
-import cv2 as cv
 import torch
 import glob, os
 
 np.random.seed(0)
-
-class VideoReader:
-
-    def __init__(self, path):
-        cap = cv.VideoCapture(path)
-        frames = []
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-            # convert the image to grey scale
-            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            gray = np.expand_dims(np.array(gray), axis=0) # In channels = 1
-            frames.append(gray)
-        cap.release()
-        frames = np.array(frames)
-        self.video_tensor = torch.Tensor(frames)
-
-    def get_tensor(self):
-        return self.video_tensor
-
-class AnnotationReader:
-
-    def __init__(self, path):
-        self.path = path
-        annotation_file = open(path, 'r')
-        lines = annotation_file.read().splitlines()
-        labels = []
-        for line in lines:
-            attributes = line.split(' ')
-            word = attributes[-1] # The word is the last atrribute in each line
-            labels.append(word)
-        self.labels = labels
-
-    def get_labels(self):
-        return self.labels
 
 class DataLoader:
 
@@ -67,18 +30,22 @@ class DataLoader:
         for j in range(-self.batch_size, 0):
             file_idx = self.load_order[self.internal_idx + j]
             video_path = self.video_paths[file_idx]
-            sample = VideoReader(video_path).get_tensor()
+            sample = np.load(video_path, allow_pickle=True)
+            try:
+                sample = torch.Tensor(sample)
+            except:
+                print(video_path)
+            sample = torch.unsqueeze(sample, dim=1)
             batch_samples.append(sample)
             annotation_path = self.annotation_paths[file_idx]
-            target = AnnotationReader(annotation_path).get_labels()
+            target = np.load(annotation_path, allow_pickle=True)
+            target = list(target)
             batch_targets.append(target)
         return batch_samples, batch_targets
 
 class Tokenizer:
 
-    def __init__(self, word2idx, batch_inputs, batch_targets, seq_in_size=80, seq_out_size=20):
-        self.inputs = batch_inputs
-        self.targets = batch_targets
+    def __init__(self, word2idx, seq_in_size=80, seq_out_size=20):
         self.word2idx = word2idx
         self.seq_in_size = seq_in_size
         self.seq_out_size = seq_out_size
@@ -86,16 +53,16 @@ class Tokenizer:
         self.sos_idx = self.word2idx['<sos>']
         self.eos_idx = self.word2idx['<eos>']
 
-    def tokenize(self):
+    def tokenize(self, inputs, targets):
         batch_inputs = []
         batch_in_pad_masks = []
         batch_tgt_pad_masks = []
         batch_targets = []
-        for input, target in zip(self.inputs, self.targets):
+        for input, target in zip(inputs, targets):
             # Pad the input sequence
             input_size = input.size(0)
             pad_size = self.seq_in_size - input_size
-            padding = torch.zeros(pad_size, input.size(1))
+            padding = torch.zeros(pad_size, input.size(1), input.size(2), input.size(3))
             input = torch.cat((input, padding), dim=0)
             input = torch.unsqueeze(input, dim=0)
             batch_inputs.append(input)
