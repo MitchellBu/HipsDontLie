@@ -2,28 +2,9 @@ import numpy as np
 import cv2 as cv
 import torch
 import glob, os
+import dlib
 
 np.random.seed(0)
-
-class VideoReader:
-
-    def __init__(self, path):
-        cap = cv.VideoCapture(path)
-        frames = []
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-            # convert the image to grey scale
-            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            gray = np.expand_dims(np.array(gray), axis=0) # In channels = 1
-            frames.append(gray)
-        cap.release()
-        frames = np.array(frames)
-        self.video_tensor = torch.Tensor(frames)
-
-    def get_tensor(self):
-        return self.video_tensor
 
 class AnnotationReader:
 
@@ -67,7 +48,8 @@ class DataLoader:
         for j in range(-self.batch_size, 0):
             file_idx = self.load_order[self.internal_idx + j]
             video_path = self.video_paths[file_idx]
-            sample = VideoReader(video_path).get_tensor()
+            sample = np.load(video_path, allow_pickle=True)
+            sample = torch.Tensor(sample)
             batch_samples.append(sample)
             annotation_path = self.annotation_paths[file_idx]
             target = AnnotationReader(annotation_path).get_labels()
