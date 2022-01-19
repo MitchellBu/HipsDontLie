@@ -6,19 +6,23 @@ np.random.seed(0)
 
 class DataLoader:
 
-    def __init__(self, videos_path, annotations_path, batch_size, shuffle=True, single_words=False):
+    def __init__(self, videos_path, annotations_path, initial_batch_size, shuffle=True):
         self.video_paths = sorted(glob.glob(videos_path + '/*/*.npy'), key=os.path.basename)
         self.annotation_paths = sorted(glob.glob(annotations_path + '/*/*.npz'), key=os.path.basename)
         self.data_size = len(self.video_paths)
-        self.batch_size = batch_size
+        self.batch_size = initial_batch_size
         self.shuffle = shuffle
+        self.num_of_words = 1
         if shuffle:
             self.load_order = np.random.permutation(self.data_size)
         else:
 
             self.load_order = np.arange(self.data_size)
-        self.single_words = single_words
         self.internal_idx = 0
+
+    def increase_difficulty(self):
+        self.num_of_words *= 2
+        self.batch_size *= 2
 
     def __iter__(self):
         return self
@@ -37,33 +41,33 @@ class DataLoader:
         for j in range(-self.batch_size, 0):
             file_idx = self.load_order[self.internal_idx + j]
             video_path = self.video_paths[file_idx]
-            sample = np.load(video_path, allow_pickle=True)
+            annotation_path = self.annotation_paths[file_idx]
             try:
+                sample = np.load(video_path, allow_pickle=True)
+                ann = np.load(annotation_path, allow_pickle=True)
                 sample = torch.Tensor(sample)
+                start_frames = list(ann['start_frames'])
+                end_frames = list(ann['end_frames'])
+                targets = list(ann['target'])
             except:
                 continue
             sample = torch.unsqueeze(sample, dim=1)
-            annotation_path = self.annotation_paths[file_idx]
-            ann = np.load(annotation_path, allow_pickle=True)
-            start_frames = list(ann['start_frames'])
-            end_frames = list(ann['end_frames'])
-            targets = list(ann['target'])
-            if self.single_words:
-                for target, start_frame_idx, end_frame_idx in zip(targets, start_frames, end_frames):
-                    if start_frame_idx == end_frame_idx:
-                        continue
-                    batch_samples.append(sample[start_frame_idx:end_frame_idx])
-                    batch_targets.append([target])
-            else:
-                batch_samples.append(sample)
-                batch_targets.append(targets)
+            seq_words_len = len(targets)
+            for idx in range(0,seq_words_len,self.num_of_words):
+                start_frame_idx = start_frames[idx]
+                last_idx = min(idx+self.num_of_words-1, seq_words_len-1)
+                end_frame_idx = end_frames[last_idx]
+                if start_frame_idx == end_frame_idx:
+                    continue
+                batch_samples.append(sample[start_frame_idx:end_frame_idx])
+                batch_targets.append(targets[idx:last_idx+1])
         if len(batch_samples) == 0:
             return self.__next__()
         return batch_samples, batch_targets
 
 class Tokenizer:
 
-    def __init__(self, word2idx, seq_in_size=80, seq_out_size=20):
+    def __init__(self, word2idx, seq_in_size=80, seq_out_size=16):
         self.word2idx = word2idx
         self.seq_in_size = seq_in_size
         self.seq_out_size = seq_out_size

@@ -6,7 +6,7 @@ import math
 TRANSFORMER_D_MODEL = 128
 TRANSFORMER_N_HEADS = 4
 
-pretrained_feature_extractor = models.vgg11(pretrained=True)
+pretrained_vgg = models.vgg11(pretrained=True)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -17,37 +17,31 @@ class Encoder(nn.Module):
 
         # Match the number of channels to 3 (RGB)
         self.up_conv = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=1)
-        # Use pretrained convlution network
-        self.features = pretrained_feature_extractor.features
-        # Average the results to match d_model features
+        # Use pretrained convlution network feature extractor
+        self.feature_extractor = pretrained_vgg.features
+        # Apply linear network to match d_model features
         self.feed_forward = nn.Linear(1024, TRANSFORMER_D_MODEL)
-        self.weights_init_()
 
-    def weights_init_(self):
-        for idx, m in enumerate(self.features):
-            classname = m.__class__.__name__
-            if classname.find('Conv2d') != -1:
-                weight_clone = torch.clone(pretrained_feature_extractor.features[idx].weight.detach())
-                self.features[idx].weight = nn.Parameter(weight_clone, requires_grad=True)
-                bias_clone = torch.clone(pretrained_feature_extractor.features[idx].bias.detach())
-                self.features[idx].bias = nn.Parameter(bias_clone, requires_grad=True)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: Tensor, shape [batch_size, num_frames, channels, h, w]
+        """
 
-    def forward(self, x):
-        ''' Forward mode. x shape: (Batch, Frames, C, H, W)'''
-
-        batch_size, num_of_frames = x.size(0), x.size(1) # (Batch, Frames, C, H, W)
-        # Reshape x to perform convolution
+        batch_size, num_of_frames = x.size(0), x.size(1)
+        # Reshape x to [batch_size*num_frames, channels, h, w] to extract feature maps
         x = x.view(-1, x.size(2), x.size(3), x.size(4))
         x = self.up_conv(x)
-        x = self.features(x)
+        x = self.feature_extractor(x)
         x = self.feed_forward(x.view(x.size(0), -1))
-        x = x.view(batch_size, num_of_frames, -1) # Convert to (Batch, Frames, Features)
+        # Reshape x back to [batch_size, num_frames, d_model]
+        x = x.view(batch_size, num_of_frames, -1)
         return x
 
 
 class Transformer(nn.Module):
 
-    def __init__(self, target_size, d_model=TRANSFORMER_D_MODEL, num_heads=TRANSFORMER_N_HEADS):
+    def __init__(self, target_size: int, d_model: int = TRANSFORMER_D_MODEL, num_heads: int = TRANSFORMER_N_HEADS):
         super(Transformer, self).__init__()
         self.d_model = d_model
         self.pos_encoder = PositionalEncoding(d_model)
