@@ -6,9 +6,9 @@ np.random.seed(0)
 
 class DataLoader:
 
-    def __init__(self, videos_path, annotations_path, batch_size, shuffle=True):
-        self.video_paths = sorted(glob.glob(videos_path + '/*/*'), key=os.path.basename)
-        self.annotation_paths = sorted(glob.glob(annotations_path + '/*/*'), key=os.path.basename)
+    def __init__(self, videos_path, annotations_path, batch_size, shuffle=True, single_words=False):
+        self.video_paths = sorted(glob.glob(videos_path + '/*/*.npy'), key=os.path.basename)
+        self.annotation_paths = sorted(glob.glob(annotations_path + '/*/*.npz'), key=os.path.basename)
         self.data_size = len(self.video_paths)
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -17,6 +17,7 @@ class DataLoader:
         else:
 
             self.load_order = np.arange(self.data_size)
+        self.single_words = single_words
         self.internal_idx = 0
 
     def __iter__(self):
@@ -42,11 +43,22 @@ class DataLoader:
             except:
                 continue
             sample = torch.unsqueeze(sample, dim=1)
-            batch_samples.append(sample)
             annotation_path = self.annotation_paths[file_idx]
-            target = np.load(annotation_path, allow_pickle=True)
-            target = list(target)
-            batch_targets.append(target)
+            ann = np.load(annotation_path, allow_pickle=True)
+            start_frames = list(ann['start_frames'])
+            end_frames = list(ann['end_frames'])
+            targets = list(ann['target'])
+            if self.single_words:
+                for target, start_frame_idx, end_frame_idx in zip(targets, start_frames, end_frames):
+                    if start_frame_idx == end_frame_idx:
+                        continue
+                    batch_samples.append(sample[start_frame_idx:end_frame_idx])
+                    batch_targets.append([target])
+            else:
+                batch_samples.append(sample)
+                batch_targets.append(targets)
+        if len(batch_samples) == 0:
+            return self.__next__()
         return batch_samples, batch_targets
 
 class Tokenizer:
@@ -82,8 +94,9 @@ class Tokenizer:
             # Add <sos> and <eos> tokens to target
             new_target = []
             for word in target:
-                word_idx = self.word2idx[word]
-                new_target.append(word_idx)
+                if word in self.word2idx.keys():
+                    word_idx = self.word2idx[word]
+                    new_target.append(word_idx)
             new_target = [self.sos_idx] + new_target + [self.eos_idx]
 
             # Create the target mask

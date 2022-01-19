@@ -5,6 +5,7 @@ from dataloader import DataLoader, Tokenizer
 from model import Encoder, Transformer
 import datetime
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 
 VOCABULARY_FILE = 'vocab.txt'
@@ -23,11 +24,11 @@ transformer = transformer.to(device)
 
 tokenizer = Tokenizer(word2idx)
 
-encoder_optimizer = optim.Adam(transformer.parameters())
-transformer_optimizer = optim.Adam(transformer.parameters())
+encoder_optimizer = optim.Adam(encoder.parameters())
+transformer_optimizer = optim.SGD(transformer.parameters(), lr=1e-2)
 loss_fn=nn.CrossEntropyLoss(ignore_index=word2idx['<pad>'])
 
-loader = DataLoader(videos_path=VIDEOS_DIR, annotations_path=ANNOTATIONS_DIR, batch_size=16, shuffle=True)
+loader = DataLoader(videos_path=VIDEOS_DIR, annotations_path=ANNOTATIONS_DIR, batch_size=1, shuffle=True, single_words=True)
 
 def get_vocab_list(vocab_path):
     with open(vocab_path, 'r') as vocab_file:
@@ -35,7 +36,7 @@ def get_vocab_list(vocab_path):
         lines = [line.strip() for line in lines]
     return np.array(lines)
 
-def calc_batch_accuracy(out, batch_targets, vocab_path='vocab.txt', verbose=False):
+def calc_batch_accuracy(out, batch_targets, vocab_path='vocab.txt', verbose=True):
     vocab = get_vocab_list(vocab_path)
     acc_sum = 0
     batch_size = out.shape[0]
