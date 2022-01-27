@@ -1,8 +1,7 @@
-# Lips Don't Lie
+# Lips Don't Lie: FAST Deep Learning algorithm to read lips
 
 <h1 align="center">
 
-Lip reading using Deep Learning
   <br>
   <img src="https://github.com/rizkiarm/LipNet/blob/master/assets/lipreading.gif?raw=true" height="300">
 </h1>
@@ -15,8 +14,8 @@ Final project as a part of Technion's EE 046211 course "Deep Learning"
 
   * [Description](#agenda)
   * [Running the project](#running-the-project)
+    + [Inference](#inference)
     + [Training](#training)
-    + [Running Locally](#running-locally)
   * [Installation Instructions](#installation-instructions)
     + [Libraries to Install](#libraries-to-install)
 
@@ -24,8 +23,12 @@ Final project as a part of Technion's EE 046211 course "Deep Learning"
 ## Description
 
 
-## Running The Project
-You can view the tutorials online or download and run locally.
+## Running The Project :runner:
+
+### Inference :mag_right:
+In order to predict the transcript from a given GRID corpus videos, put them in `` examples/videos`` path.
+Then, just run ``inference.py``.
+It is possible to change the path/make an inference on a single video by changing the last line of `inference.py`.
 
 ### Training :weight_lifting:
 In order to train the models from scratch:
@@ -40,8 +43,6 @@ In order to train the models from scratch:
 4. Run ``preprocess.py``. This might take a while. 
 
 5. Run ``run.py``.
-
-Note: creating the Binder instance takes about ~5-10 minutes, so be patient
 
 ### Running Locally
 
