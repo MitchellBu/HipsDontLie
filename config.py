@@ -14,7 +14,7 @@ LANDMARKS_DIR = './npy_landmarks'
 PRETRAINED_SHAPE_DETECTOR_PATH = './facial-landmarks-models/shape_predictor_68_face_landmarks.dat'
 
 # DataLoader
-SPEAKERS = list(range(6,16))
+SPEAKERS = list(range(2,15)) + list(range(22,35))
 WINDOW_SIZE = 5
 MIN_FRAMES = 70
 
@@ -37,9 +37,10 @@ TRANSFORMER_DROPOUT = 0.1
 
 # Training
 BATCH_SIZE = 64
-EPOCHS = 60
+EPOCHS = 20
 VERBOSE_ITERS=100
 MAX_RANDOM_FLIP_PROB = 0.3
+SCHEDULER_ITERS=50
 
 # trained models
 TRANSFORMER_BEST = 'final_models/trained_models_90/transformer'

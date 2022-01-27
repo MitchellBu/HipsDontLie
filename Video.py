@@ -332,23 +332,25 @@ class Video:
             print(f'VIDEO PATH: {self.video_path}')
             print('########################################')
             self.mouth_frames = None
+            self.mouth_lmrks = None
         
-        mouth_lmrks = []
-        for i, frame in enumerate(self.frames):
-            # compute 68 landmark.
-            shape = None
-            shape = self.predictor(frame, rects[0]) # shape.parts() is 68 (x,y) points
-            if shape is None:  # Predictor can't find landmarks.
-                print(f"FRAME {i}: Predictor can't find face landmarks.")
-                mouth_lmrks.append(np.array([(0,0)]*20))
+        else:
+            mouth_lmrks = []
+            for i, frame in enumerate(self.frames):
+                # compute 68 landmark.
+                shape = None
+                shape = self.predictor(frame, rects[0]) # shape.parts() is 68 (x,y) points
+                if shape is None:  # Predictor can't find landmarks.
+                    print(f"FRAME {i}: Predictor can't find face landmarks.")
+                    mouth_lmrks.append(np.array([(0,0)]*20))
 
-            mouth_points = [(part.x, part.y) for part in shape.parts()[48:]] # points 48-68 indicate the mouth region
-            # mouth_points = [(part.x, part.y) for part in shape.parts()[:]] # return all points
+                mouth_points = [(part.x, part.y) for part in shape.parts()[48:]] # points 48-68 indicate the mouth region
+                # mouth_points = [(part.x, part.y) for part in shape.parts()[:]] # return all points
 
-            np_mouth_points = np.array(mouth_points)
-            mouth_lmrks.append(np_mouth_points)
-            
-        self.mouth_lmrks = np.array(mouth_lmrks)
+                np_mouth_points = np.array(mouth_points)
+                mouth_lmrks.append(np_mouth_points)
+                
+            self.mouth_lmrks = np.array(mouth_lmrks)
 
 
     def plot_random_lips(self, fig_path=None):

@@ -5,7 +5,6 @@ from utils import create_train_test_val
 import config as cfg
 
 speakers = cfg.SPEAKERS
-speakers = list(range(6,16))
 
 # Preprocess and compress videos and alignments.
 Video.LandmarksCompressor(cfg.VIDEOS_DIR, cfg.LANDMARKS_DIR)
