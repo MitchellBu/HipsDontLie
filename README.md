@@ -50,7 +50,8 @@ In order to train the models from scratch:
 
 ## Libraries to Install :books:
 
-|Library         | Command to Run | Minimal Version
+**Before trying to run anything please make sure to install all the packages below.**
+|Library         | Command to Run | Minimal Version |
 |----------------|----------------|-----------------|
 |`NumPy`|  `pip install numpy`| `1.19.5`|
 |`matplotlib`|  `pip install matplotlib`| `3.3.4`|
