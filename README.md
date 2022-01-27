@@ -1,4 +1,4 @@
-# Lips Don't Lie: FAST Deep Learning algorithm to read lips
+# Lips Don't Lie: FAST Deep Learning model to read lips
 
 <h1 align="center">
 
@@ -9,18 +9,19 @@
     <a href="https://github.com/MitchellBu">Mitchell Butovsky</a> , <a href="https://github.com/TomBekor">Tom Bekor</a> 
   </p>
 
-Final project as a part of Technion's EE 046211 course "Deep Learning"
+Final project as a part of Technion's EE 046211 course "Deep Learning" :sunglasses:
 * Animation by <a href = https://github.com/rizkiarm> @rizkiarm </a>.
 
-  * [Description](#Description)
-  * [Running the project](#Running The Project :runner:)
-    + [Inference](#Inference :mag_right:)
-    + [Training](#Training :weight_lifting:)
-  * [Libraries to Install :books:](#Running The Project :books:)
+  * [Description](#description-lips)
+  * [Running the project](#running-the-project-runner)
+    + [Inference](#inference-mag_right)
+    + [Training](#training-weight_lifting)
+  * [Libraries to Install](#libraries-to-install-books)
 
 
-## Description
-
+## Description :lips:
+In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf "BlazeFace") algorithm and the [transformer architecture](https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf "transformer") and acheive near SOTA performance on the [GRID dataset](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID dataset") with very fast training and inference.
+![BlazeFace](https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png "BlazeFace") ![Transformer Architecture](https://i.ibb.co/vVyfxt7/rsz-transformer.png "Transformer Architecture")
 
 ## Running The Project :runner:
 
