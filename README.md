@@ -22,9 +22,9 @@ Final project as a part of Technion's EE 046211 course "Deep Learning" :sunglass
 ## Description :lips:
 In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf "BlazeFace") algorithm and the [transformer architecture](https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf "transformer") and acheive near SOTA performance on the [GRID dataset](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID dataset") with very fast training and inference.
 
-<p align="center">
+<h2 align="center">
 ![BlazeFace](https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png "BlazeFace") ![Transformer Architecture](https://i.ibb.co/vVyfxt7/rsz-transformer.png "Transformer Architecture")
-</p>
+</h2>
   
 ## Running The Project :runner:
 
