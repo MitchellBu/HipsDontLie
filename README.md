@@ -28,7 +28,7 @@ In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf 
 <img src="https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png" height=300> <img src="https://i.ibb.co/vVyfxt7/rsz-transformer.png" height=300>
 </h2>
 
-## The Repository 🧭
+## The Repository :compass:
 We provide here a short explaination about the structure of this repository:
 - ``videos/[speaker_id]`` and ``alignments/[speaker_id]`` contain the raw data from the GRID dataset;
 videos and word alignments respectievly.
@@ -47,6 +47,7 @@ The pre-processing mechanisem itself is splitted to the ``Video.py`` which pre-p
 In order to predict the transcript from some given [GRID corpus](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID corpus") videos, put them in `` examples/videos`` path.
 Then, just run ``inference.py``.
 It is possible to change the path/make an inference on a single video by changing the last line of `inference.py`.
+
 **Important: remember to download our pretrained models here, or create them by running ``run.py``**
 
 ### Training :weight_lifting:
