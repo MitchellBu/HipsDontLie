@@ -46,6 +46,7 @@ losses = []
 all_accs = []
 all_loss = []
 val_accs = []
+all_val_accs = []
 
 flip_prob = 0
 training_start = datetime.datetime.now()
@@ -162,6 +163,7 @@ for epoch in range(cfg.EPOCHS):
             preds = preds[:,1:-1]
             acc = accuracy_score(np.array(targets).flatten(), preds.flatten())
             epoch_val_accs.append(acc)
+        all_val_accs += epoch_val_accs
         print(f'Validation accuracy: {np.mean(epoch_val_accs)*100:.2f}%\n')
 
 training_end = datetime.datetime.now()
@@ -170,7 +172,7 @@ print(f'\nTotal training time: {str(training_end-training_start)[:-3]}')
 # Write the evaluated metrics to fiales
 write_metric(losses, 'metrics/train_losses.txt')
 write_metric(all_accs, 'metrics/train_accs.txt')
-write_metric(epoch_val_accs, 'metrics/val_accs.txt')
+write_metric(all_val_accs, 'metrics/val_accs.txt')
 
 # Save the trained models
 torch.save(transformer.state_dict(), cfg.TRANSFORMER_SAVE)
