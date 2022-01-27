@@ -48,7 +48,7 @@ In order to predict the transcript from some given [GRID corpus](http://spandh.d
 Then, just run ``inference.py``.
 It is possible to change the path/make an inference on a single video by changing the last line of `inference.py`.
 
-**Important: remember to download our pretrained models here, or create them by running ``run.py``**
+**Important: remember to download our pretrained models [here](https://drive.google.com/drive/folders/1-udLFTgkJSemyzciD0PJwOZvXNJ50AZS?usp=sharing "here"), or create them by running ``run.py``**
 
 ### Training :weight_lifting:
 In order to train the models from scratch:
