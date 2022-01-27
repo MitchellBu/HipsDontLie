@@ -12,12 +12,11 @@
 Final project as a part of Technion's EE 046211 course "Deep Learning"
 * Animation by <a href = https://github.com/rizkiarm> @rizkiarm </a>.
 
-  * [Description](#agenda)
-  * [Running the project](#running-the-project)
-    + [Inference](#inference)
-    + [Training](#training)
-  * [Installation Instructions](#installation-instructions)
-    + [Libraries to Install](#libraries-to-install)
+  * [Description](#Description)
+  * [Running the project](#Running The Project :runner:)
+    + [Inference](#Inference :mag_right:)
+    + [Training](#Training :weight_lifting:)
+  * [Libraries to Install :books:](#Running The Project :books:)
 
 
 ## Description
@@ -26,7 +25,7 @@ Final project as a part of Technion's EE 046211 course "Deep Learning"
 ## Running The Project :runner:
 
 ### Inference :mag_right:
-In order to predict the transcript from a given GRID corpus videos, put them in `` examples/videos`` path.
+In order to predict the transcript from a given [GRID corpus](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID corpus") videos, put them in `` examples/videos`` path.
 Then, just run ``inference.py``.
 It is possible to change the path/make an inference on a single video by changing the last line of `inference.py`.
 
@@ -44,24 +43,7 @@ In order to train the models from scratch:
 
 5. Run ``run.py``.
 
-### Running Locally
-
-Press "Download ZIP" under the green button `Clone or download` or use `git` to clone the repository using the 
-following command: `git clone https://github.com/taldatech/ee046211-deep-learning.git` (in cmd/PowerShell in Windows or in the Terminal in Linux/Mac)
-
-Open the folder in Jupyter Notebook (it is recommended to use Anaconda). Installation instructions can be found in `Setting Up The Working Environment.pdf`.
-
-
-## Installation Instructions
-
-1. Get Anaconda with Python 3, follow the instructions according to your OS (Windows/Mac/Linux) at: https://www.anaconda.com/products/individual
-2. Install the basic packages using the provided `environment.yml` file by running: `conda env create -f environment.yml` which will create a new conda environment named `deep_learn`. If you did this, you will only need to install PyTorch, see the table below.
-3. Alternatively, you can create a new environment for the course and install packages from scratch:
-In Windows open `Anaconda Prompt` from the start menu, in Mac/Linux open the terminal and run `conda create --name deep_learn`. Full guide at https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
-4. To activate the environment, open the terminal (or `Anaconda Prompt` in Windows) and run `conda activate deep_learn`
-5. Install the required libraries according to the table below (to search for a specific library and the corresponding command you can also look at https://anaconda.org/)
-
-### Libraries to Install
+### Libraries to Install :books:
 
 |Library         | Command to Run |
 |----------------|---------|
