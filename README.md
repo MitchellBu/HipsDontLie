@@ -24,7 +24,7 @@ In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf 
 
 
 <h2 align="center">
-![BlazeFace](https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png "BlazeFace") ![Transformer Architecture](https://i.ibb.co/vVyfxt7/rsz-transformer.png "Transformer Architecture")
+<img src="https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png" height=200> <img src="https://i.ibb.co/vVyfxt7/rsz-transformer.png" height=200>
 </h2>
   
 ## Running The Project :runner:
