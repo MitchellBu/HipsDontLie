@@ -13,6 +13,7 @@ Final project as a part of Technion's EE 046211 course "Deep Learning" 🌠.
 * Animation by <a href = https://github.com/rizkiarm> @rizkiarm </a>.
 
   * [Description](#description-lips)
+  * [The Repository](#the-repository-compass)
   * [Running the project](#running-the-project-runner)
     + [Inference](#inference-mag_right)
     + [Training](#training-weight_lifting)
@@ -26,6 +27,19 @@ In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf 
 <h2 align="center">
 <img src="https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png" height=300> <img src="https://i.ibb.co/vVyfxt7/rsz-transformer.png" height=300>
 </h2>
+
+## The Repository 🧭
+We provide here a short explaination about the structure of this repository:
+- ``videos/[speaker_id]`` and ``alignments/[speaker_id]`` contain the raw data from the GRID dataset;
+videos and word alignments respectievly.
+- ``npy_landmarks`` and ``npy_alignments`` contain the processed videos and alignments. 
+The pre-processing is done **automatically** by running ``preprocess.py``. 
+The pre-processing mechanisem itself is splitted to the ``Video.py`` which pre-processes the videos and ``Annotation.py`` which pre-processes the alignments. 
+- `dataloader.py` contains  data loaders for both training and testing as well as a tokenizer which prepares the data for the transformer. Tokenization is done using ``vocab.txt`` which contains all the possible tokens, as well as ``<pad>``, ``<sos>`` and ``<eos>`` tokens.
+-  ``model.py`` contains our architecture, divided to the Transformer and an additional Landmarks Neural Net modules.
+- ``run.py`` is the main file of our project. It trains the architecture and then generates predictions on unseen test samples.
+-  ``config.py`` containts all the constants and hyper-parameters that are used in the project.
+- Finally, ``inference.py`` is used to make predictions using the pre-trained models.
   
 ## Running The Project :runner:
 
@@ -33,6 +47,7 @@ In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf 
 In order to predict the transcript from some given [GRID corpus](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID corpus") videos, put them in `` examples/videos`` path.
 Then, just run ``inference.py``.
 It is possible to change the path/make an inference on a single video by changing the last line of `inference.py`.
+**Important: remember to download our pretrained models here, or create them by running ``run.py``**
 
 ### Training :weight_lifting:
 In order to train the models from scratch:
