@@ -48,23 +48,14 @@ In order to train the models from scratch:
 
 5. Run ``run.py``.
 
-### Libraries to Install :books:
+## Libraries to Install :books:
 
-|Library         | Command to Run |
+|Library         | Command to Run | Minimal Version
 |----------------|---------|
-|`Jupyter Notebook`|  `conda install -c conda-forge notebook`|
-|`numpy`|  `conda install -c conda-forge numpy`|
-|`matplotlib`|  `conda install -c conda-forge matplotlib`|
-|`pandas`|  `conda install -c conda-forge pandas`|
-|`scipy`| `conda install -c anaconda scipy `|
-|`scikit-learn`|  `conda install -c conda-forge scikit-learn`|
-|`seaborn`|  `conda install -c conda-forge seaborn`|
-|`tqdm`| `conda install -c conda-forge tqdm`|
-|`opencv`| `conda install -c conda-forge opencv`|
-|`optuna`| `pip install optuna`|
-|`pytorch` (cpu)| `conda install pytorch torchvision torchaudio cpuonly -c pytorch` |
-|`pytorch` (gpu)| `conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch` |
-|`torchtext`| `conda install -c pytorch torchtext`|
-
-
-5. To open the notebooks, open Ananconda Navigator or run `jupyter notebook` in the terminal (or `Anaconda Prompt` in Windows) while the `deep_learn` environment is activated.
+|`NumPy`|  `pip install numpy`| `1.19.5`
+|`matplotlib`|  `pip install matplotlib`| `3.3.4`
+|`PyTorch`|  `pip install torch`| `1.1.10`
+|`Open CV`| `pip install opencv-python `| `4.5.4`
+|`DLib`| `pip install dlib` | `19.22.1`
+|`scikit-learn`|  `pip install scikit-learn`| `0.24.2`
+|`tqdm`| `pip install tqdm`| `4.62.3`
