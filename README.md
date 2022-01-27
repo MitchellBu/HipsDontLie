@@ -10,6 +10,7 @@
   </p>
 
 Final project as a part of Technion's EE 046211 course "Deep Learning" 🌠.
+Implemented in PyTorch :fire:.
 * Animation by <a href = https://github.com/rizkiarm> @rizkiarm </a>.
 
   * [Description](#description-lips)
