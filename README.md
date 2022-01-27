@@ -9,7 +9,7 @@
     <a href="https://github.com/MitchellBu">Mitchell Butovsky</a> , <a href="https://github.com/TomBekor">Tom Bekor</a> 
   </p>
 
-Final project as a part of Technion's EE 046211 course "Deep Learning" :sunglasses:
+Final project as a part of Technion's EE 046211 course "Deep Learning" :brain: :sunglasses:.
 * Animation by <a href = https://github.com/rizkiarm> @rizkiarm </a>.
 
   * [Description](#description-lips)
@@ -24,7 +24,7 @@ In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf 
 
 
 <h2 align="center">
-<img src="https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png" height=200> <img src="https://i.ibb.co/vVyfxt7/rsz-transformer.png" height=200>
+<img src="https://i.ibb.co/hYH90Zt/Screenshot-from-2022-01-27-16-01-24.png" height=300> <img src="https://i.ibb.co/vVyfxt7/rsz-transformer.png" height=300>
 </h2>
   
 ## Running The Project :runner:
