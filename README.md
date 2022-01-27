@@ -51,11 +51,11 @@ In order to train the models from scratch:
 ## Libraries to Install :books:
 
 |Library         | Command to Run | Minimal Version
-|----------------|---------|
-|`NumPy`|  `pip install numpy`| `1.19.5`
-|`matplotlib`|  `pip install matplotlib`| `3.3.4`
-|`PyTorch`|  `pip install torch`| `1.1.10`
-|`Open CV`| `pip install opencv-python `| `4.5.4`
-|`DLib`| `pip install dlib` | `19.22.1`
-|`scikit-learn`|  `pip install scikit-learn`| `0.24.2`
-|`tqdm`| `pip install tqdm`| `4.62.3`
+|----------------|----------------|-----------------|
+|`NumPy`|  `pip install numpy`| `1.19.5`|
+|`matplotlib`|  `pip install matplotlib`| `3.3.4`|
+|`PyTorch`|  `pip install torch`| `1.1.10`|
+|`Open CV`| `pip install opencv-python `| `4.5.4`|
+|`DLib`| `pip install dlib` | `19.22.1`|
+|`scikit-learn`|  `pip install scikit-learn`| `0.24.2`|
+|`tqdm`| `pip install tqdm`| `4.62.3`|
