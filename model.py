@@ -1,70 +1,83 @@
 import torch
 from torch import nn
-import torchvision.models as models
 import math
-
-TRANSFORMER_D_MODEL = 128
-TRANSFORMER_N_HEADS = 4
-
-pretrained_feature_extractor = models.vgg11(pretrained=True)
+import config as cfg
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class Encoder(nn.Module):
-
-    def __init__(self):
-        super(Encoder, self).__init__()
-
-        # Match the number of channels to 3 (RGB)
-        self.up_conv = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=1)
-        # Use pretrained convlution network
-        self.features = pretrained_feature_extractor.features
-        # Average the results to match d_model features
-        self.feed_forward = nn.Linear(1024, TRANSFORMER_D_MODEL)
-        self.weights_init_()
-
-    def weights_init_(self):
-        for idx, m in enumerate(self.features):
-            classname = m.__class__.__name__
-            if classname.find('Conv2d') != -1:
-                weight_clone = torch.clone(pretrained_feature_extractor.features[idx].weight.detach())
-                self.features[idx].weight = nn.Parameter(weight_clone, requires_grad=True)
-                bias_clone = torch.clone(pretrained_feature_extractor.features[idx].bias.detach())
-                self.features[idx].bias = nn.Parameter(bias_clone, requires_grad=True)
+class LandmarksNN(nn.Module):
+    def __init__(self, input_dim=cfg.INPUT_DIM, hidden_dim=cfg.HIDDEN_DIM,
+     output_dim=cfg.TRANSFORMER_D_MODEL):
+        super(LandmarksNN, self).__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.dropout = nn.Dropout(p=cfg.LMARKS_DROPOUT)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
-        ''' Forward mode. x shape: (Batch, Frames, C, H, W)'''
-
-        batch_size, num_of_frames = x.size(0), x.size(1) # (Batch, Frames, C, H, W)
-        # Reshape x to perform convolution
-        x = x.view(-1, x.size(2), x.size(3), x.size(4))
-        x = self.up_conv(x)
-        x = self.features(x)
-        x = self.feed_forward(x.view(x.size(0), -1))
-        x = x.view(batch_size, num_of_frames, -1) # Convert to (Batch, Frames, Features)
-        return x
+        ''' 
+            Input: batch of sequences of frame landmarks
+            Output: batch of sequences of frame embeddings
+            Args:
+            x: Tensor, shape [batch_size, in_seq_len, tot_lmarks]
+            Output:
+            outs: Tensor, shape [batch_size, in_seq_len, embedding_dim]
+        '''
+        out = x
+        out = self.fc1(out)
+        out = self.dropout(out)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
 
 
 class Transformer(nn.Module):
 
-    def __init__(self, target_size, d_model=TRANSFORMER_D_MODEL, num_heads=TRANSFORMER_N_HEADS):
+    def __init__(self, target_size: int,
+     d_model: int = cfg.TRANSFORMER_D_MODEL,
+     num_heads: int = cfg.TRANSFORMER_N_HEADS,
+     num_encoder_layers: int = cfg.TRANSFORMER_ENCODER_LAYERS,
+     num_decoder_layers: int = cfg.TRANSFORMER_DECODER_LAYERS, 
+     dim_feedforward: int = cfg.TRANSFORMER_DIM_FEEDFORWARD,
+     dropout: int = cfg.TRANSFORMER_DROPOUT):
         super(Transformer, self).__init__()
+        # Positional encoding and Embedding layers
         self.d_model = d_model
         self.pos_encoder = PositionalEncoding(d_model)
         self.embedding = nn.Embedding(target_size, d_model)
-        self.transformer = nn.Transformer(d_model=d_model, batch_first=True, nhead=num_heads)
+
+        # Transformer architecture and feedforward layer
+        self.transformer = nn.Transformer(d_model=d_model, batch_first=True, nhead=num_heads,
+         num_encoder_layers=num_encoder_layers, num_decoder_layers=num_decoder_layers,
+         dim_feedforward=dim_feedforward, dropout=dropout)
         self.generator = nn.Linear(d_model, target_size)
 
-    def forward(self, batch_inputs, batch_targets, batch_in_pad_masks, batch_tgt_pad_masks):
-        batch_inputs *= math.sqrt(self.d_model)
+        # Generate input and target masks
+        self.batch_in_mask = torch.zeros(cfg.SEQUENCE_IN_MAX_LEN, cfg.SEQUENCE_IN_MAX_LEN)
+        self.batch_in_mask = self.batch_in_mask.to(device)
+        self.batch_tgt_mask = nn.Transformer.generate_square_subsequent_mask(cfg.SEQUENCE_OUT_MAX_LEN)
+        self.batch_tgt_mask = self.batch_tgt_mask.to(device)
+
+    def forward(self, batch_inputs: torch.Tensor, batch_targets: torch.Tensor, batch_in_pad_masks: torch.Tensor, batch_tgt_pad_masks: torch.Tensor, inference_mode: bool =False) -> torch.Tensor:
+        ''' 
+            Input: batch of sequences of frame embeddings
+            Output: token probabilities for each sequence in the batch
+            Args:
+            batch_inputs: Tensor, shape [batch_size, in_seq_len, embedding_dim]
+            batch_targets:  Tensor, shape [batch_size, out_seq_len, embedding_dim]
+            batch_in_pad_masks: Tensor, shape [batch_size, in_seq_len]
+            batch_tgt_pad_masks: Tensor, shape [batch_size, out_seq_len] 
+            Output:
+            outs: Tensor, shape [batch_size, out_seq_len, vocab_size] 
+        '''
+
+        # Add a positional encoding to the input and target tokens
         batch_inputs = self.pos_encoder(batch_inputs)
         batch_targets = self.embedding(batch_targets)
         batch_targets = self.pos_encoder(batch_targets)
-        batch_in_mask = torch.zeros(batch_inputs.size(1), batch_inputs.size(1))
-        batch_in_mask = batch_in_mask.to(device)
-        batch_tgt_mask = nn.Transformer.generate_square_subsequent_mask(batch_targets.size(1))
-        batch_tgt_mask = batch_tgt_mask.to(device)
-        outs = self.transformer(batch_inputs, batch_targets, src_mask=batch_in_mask, tgt_mask=batch_tgt_mask,
+
+        # Perform a forward pass in the transformer architecture
+        outs = self.transformer(batch_inputs, batch_targets, src_mask=self.batch_in_mask, tgt_mask=self.batch_tgt_mask,
             src_key_padding_mask=batch_in_pad_masks, tgt_key_padding_mask=batch_tgt_pad_masks)
         outs = self.generator(outs)
         return outs
@@ -77,15 +90,15 @@ class PositionalEncoding(nn.Module):
 
         position = torch.arange(max_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
         self.register_buffer('pe', pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: Tensor, shape [seq_len, batch_size, embedding_dim]
+            x: Tensor, shape [batch_size, seq_len, embedding_dim]
         """
-        x = x + self.pe[:x.size(0)]
+        x[:] += self.pe[:x.size(1)]
         return self.dropout(x)

@@ -1,29 +1,54 @@
 import numpy as np
 import torch
 import glob, os
+import config as cfg
+from utils import sliding_windows
 
 np.random.seed(0)
 
 class DataLoader:
 
-    def __init__(self, videos_path, annotations_path, batch_size, shuffle=True):
-        self.video_paths = sorted(glob.glob(videos_path + '/*/*'), key=os.path.basename)
-        self.annotation_paths = sorted(glob.glob(annotations_path + '/*/*'), key=os.path.basename)
-        self.data_size = len(self.video_paths)
+    def __init__(self, landmarks_path: str, annotations_path: str,
+     vocab: list, mode: str, batch_size: int, shuffle: bool=True):
+        '''
+        Loads batches of labeled data
+        Args: 
+        landmarks_path: str, path to the landmark files,
+        annotations_path: str, path to the annotation files,
+        mode: {'train', 'test', 'validation'}, determines which data to load,
+        batch_size: int, determines how many (sample, label) pairs to load simultaneously,
+        vocab: list, a list containing all the words in the vocabulary 
+        shuffle: bool, determines whether to load the data in a shuffled manner
+        '''
+        # Read the landmark and annotation files
+        self.landmarks_paths = []
+        self.annotation_paths = []
+        for speaker in cfg.SPEAKERS:
+            self.landmarks_paths += sorted(glob.glob(f'{landmarks_path}/{speaker}/{mode}/*'), key=os.path.basename)
+            self.annotation_paths += sorted(glob.glob(f'{annotations_path}/{speaker}/{mode}/*'), key=os.path.basename)
+        
+        self.data_size = len(self.landmarks_paths)
+        self.vocab = vocab
         self.batch_size = batch_size
         self.shuffle = shuffle
         if shuffle:
             self.load_order = np.random.permutation(self.data_size)
         else:
-
             self.load_order = np.arange(self.data_size)
+        self.window_size = cfg.WINDOW_SIZE
         self.internal_idx = 0
 
     def __iter__(self):
         return self
     
-    def __next__(self):
+    def __next__(self): # -> tuple(list, list):
+        '''
+        Returns batches of labeled data
+        Output: 
+        batch_samples: list, batch_targets: list, batch of sample and of corresponding targets
+        '''
         self.internal_idx += self.batch_size
+        # Reached the end of the batch - reset params!
         if self.internal_idx > self.data_size:
             if self.shuffle:
                 self.load_order = np.random.permutation(self.data_size)
@@ -34,32 +59,63 @@ class DataLoader:
         batch_samples = []
         batch_targets = []
         for j in range(-self.batch_size, 0):
+            # Try to load the landmarks and annotations
             file_idx = self.load_order[self.internal_idx + j]
-            video_path = self.video_paths[file_idx]
-            sample = np.load(video_path, allow_pickle=True)
+            landmarks_path = self.landmarks_paths[file_idx]
+            annotation_path = self.annotation_paths[file_idx]
             try:
+                sample = np.load(landmarks_path, allow_pickle=True)
+                ann = np.load(annotation_path, allow_pickle=True)
                 sample = torch.Tensor(sample)
+                targets = [target for target in ann if target in self.vocab]
+                if sample.size(0) < 70:
+                    continue
             except:
                 continue
-            sample = torch.unsqueeze(sample, dim=1)
+            sample = sample.view(sample.size(0), -1)
+            sample = torch.diff(sample, dim=0) # compute the landmark deltas
+            # Add temporal window information to every frame
+            frames = sample.size(0)
+            win_indices = sliding_windows(frames, self.window_size)
+            sample = sample[win_indices]
+            sample = sample.view(frames - self.window_size + 1, -1)
             batch_samples.append(sample)
-            annotation_path = self.annotation_paths[file_idx]
-            target = np.load(annotation_path, allow_pickle=True)
-            target = list(target)
-            batch_targets.append(target)
+            batch_targets.append(targets)
+        if len(batch_samples) == 0:
+            return self.__next__()
         return batch_samples, batch_targets
 
 class Tokenizer:
 
-    def __init__(self, word2idx, seq_in_size=80, seq_out_size=20):
+    def __init__(self, word2idx: dict, seq_in_size: int=cfg.SEQUENCE_IN_MAX_LEN,
+     seq_out_size :int=cfg.SEQUENCE_OUT_MAX_LEN):
+        '''
+        Tokenizes the inputs and the targets, as well as pads them to match 
+        the fixed input size and output size.
+        Args: 
+        word2idx: dict, a dictionary which maps each word in the vocab to a token,
+        seq_in_size: int, sequence input size,
+        seq_out_size: int, sequence target size
+        '''
         self.word2idx = word2idx
         self.seq_in_size = seq_in_size
         self.seq_out_size = seq_out_size
         self.pad_idx = self.word2idx['<pad>']
-        self.sos_idx = self.word2idx['<sos>']
         self.eos_idx = self.word2idx['<eos>']
 
-    def tokenize(self, inputs, targets):
+    def tokenize(self, inputs: list, targets: list): # -> tuple(torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor):
+        '''
+        Performs the tokenization on a given list of samples and matching targets.
+        Generates input & target padding masks.
+        Args: 
+        inputs: list, a list on inputs as generated by the DataLoader,
+        targets: list, a list of targets as generated by the DataLoader
+        Output:
+        batch_inputs, torch.Tensor: tokenized batch_inputs as tensor,
+        batch_targets, torch.Tensor: tokenized batch_targets as tensor,
+        batch_in_pad_masks, torch.Tensor: the input padding masks of the batch as a tensor,
+        batch_tgt_pad_masks, torch.Tensor: the output padding masks of the target as a tensor
+        '''
         batch_inputs = []
         batch_in_pad_masks = []
         batch_tgt_pad_masks = []
@@ -68,7 +124,9 @@ class Tokenizer:
             # Pad the input sequence
             input_size = input.size(0)
             pad_size = self.seq_in_size - input_size
-            padding = torch.zeros(pad_size, input.size(1), input.size(2), input.size(3))
+            padding_shape = list(input.shape)
+            padding_shape[0] = pad_size
+            padding = torch.zeros(padding_shape)
             input = torch.cat((input, padding), dim=0)
             input = torch.unsqueeze(input, dim=0)
             batch_inputs.append(input)
@@ -79,12 +137,13 @@ class Tokenizer:
             input_pad_mask = torch.unsqueeze(input_pad_mask, dim=0)
             batch_in_pad_masks.append(input_pad_mask)
 
-            # Add <sos> and <eos> tokens to target
+            # Add <eos> token to the target
             new_target = []
             for word in target:
-                word_idx = self.word2idx[word]
-                new_target.append(word_idx)
-            new_target = [self.sos_idx] + new_target + [self.eos_idx]
+                if word in self.word2idx.keys():
+                    word_idx = self.word2idx[word]
+                    new_target.append(word_idx)
+            new_target = new_target + [self.eos_idx]
 
             # Create the target mask
             tot_target_size = len(new_target)
@@ -105,3 +164,28 @@ class Tokenizer:
         batch_tgt_pad_masks = torch.cat(batch_tgt_pad_masks)
         batch_targets = torch.cat(batch_targets)
         return batch_inputs, batch_targets, batch_in_pad_masks, batch_tgt_pad_masks
+
+class InferenceLoader:
+
+    def __init__(self, landmarks_array):
+        '''
+        Loads a single sample for FAST inference
+        Args:
+        landmarks_array, np.array, shape [frames, n_lmarks, 2]
+        '''
+        self.window_size = cfg.WINDOW_SIZE
+        try:
+            sample = torch.Tensor(landmarks_array)
+            if sample.size(0) < cfg.MIN_FRAMES:
+                raise TypeError('Problem reading file')
+        except:
+            raise TypeError('Problem reading file')
+        sample = sample.view(sample.size(0), -1)
+        sample = torch.diff(sample, dim=0) # compute the landmark deltas
+        frames = sample.size(0)
+        win_indices = sliding_windows(frames, self.window_size)
+        sample = sample[win_indices]
+        self.sample = sample.view(frames - self.window_size + 1, -1)
+    
+    def get(self):
+        return self.sample
