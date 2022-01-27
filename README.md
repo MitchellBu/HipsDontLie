@@ -30,7 +30,7 @@ In this project we combine the [BlazeFace](https://arxiv.org/pdf/1907.05047.pdf 
 ## Running The Project :runner:
 
 ### Inference :mag_right:
-In order to predict the transcript from a given [GRID corpus](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID corpus") videos, put them in `` examples/videos`` path.
+In order to predict the transcript from some given [GRID corpus](http://spandh.dcs.shef.ac.uk/gridcorpus/ "GRID corpus") videos, put them in `` examples/videos`` path.
 Then, just run ``inference.py``.
 It is possible to change the path/make an inference on a single video by changing the last line of `inference.py`.
 
