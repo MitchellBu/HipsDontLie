@@ -9,7 +9,7 @@
     <a href="https://github.com/MitchellBu">Mitchell Butovsky</a> , <a href="https://github.com/TomBekor">Tom Bekor</a> 
   </p>
 
-Final project as a part of Technion's EE 046211 course "Deep Learning" 🌠.
+Final project as a part of Technion's IEM 097215 "Deep learning for NLP" & EE 046211 course "Deep Learning" 🌠.
 
 Implemented in PyTorch :fire:.
 * Animation by <a href = https://github.com/rizkiarm> @rizkiarm </a>.
